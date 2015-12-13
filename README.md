@@ -1,3 +1,5 @@
+Python 2.7.9
+
 Bot to monitor zKillboard's RedisQ feed and relay to kills to GroupMe channels.
 
     pip install -r requirments.txt
