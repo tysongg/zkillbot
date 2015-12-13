@@ -10,7 +10,7 @@ message_queue = []
 
 def main():
     s = requests.Session();
-    s.headers.update({'User-Agent': 'QS - zKill Monitor | nolandriel.eve@gmail.com', 'Accept': 'text/json'})
+    s.headers.update({'User-Agent': user_agent, 'Accept': 'text/json'})
     while True:
         # fetch kills from zkillboard
         kill = fetch_zkill(s)
