@@ -41,7 +41,7 @@ def process_queues():
         process_queue(priority_queue)
         priority_queue = []
     # then check our standard queue
-    elif len(message_queue) and (datetime.now() - last_message).total_seconds() > priority_interval:
+    elif len(message_queue) and (datetime.now() - last_message).total_seconds() > message_interval:
         process_queue([message_queue.pop()])
 
     # queue cleanup
