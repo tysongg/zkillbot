@@ -69,7 +69,13 @@ def post_message(text):
 
 def fetch_zkill(session):
     r = session.get(redisq_url)
-    data = r.json()
+
+    # pull json data from the response
+    try:
+        data = r.json()
+    catch ValueError:
+        return None
+
     if 'package' in data and data['package'] is not None:
         return data['package']
     return None
