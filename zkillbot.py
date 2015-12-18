@@ -73,7 +73,7 @@ def fetch_zkill(session):
     # pull json data from the response
     try:
         data = r.json()
-    catch ValueError:
+    except ValueError:
         return None
 
     if 'package' in data and data['package'] is not None:
