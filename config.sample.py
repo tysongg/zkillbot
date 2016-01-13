@@ -17,4 +17,4 @@ groupme_url = 'https://api.groupme.com/v3/bots/post'
 
 ### Zkillboard Configurations ###
 zkillboard_url = "https://zkillboard.com/kill/{id}/"
-redisq_url = 'http://redisq.zkillboard.com/listen.php'
+redisq_url = 'https://redisq.zkillboard.com/listen.php'

@@ -61,11 +61,12 @@ def process_queue(queue):
             post_message(zkillboard_url.format(id = killID))
 
 def post_message(text):
-    payload = {
-        'bot_id': bot_id,
-        'text': text
-    }
-    requests.post(groupme_url, data=payload)
+    if bot_id:
+        payload = {
+            'bot_id': bot_id,
+            'text': text
+        }
+        requests.post(groupme_url, data=payload)
 
 def fetch_zkill(session):
     r = session.get(redisq_url)
