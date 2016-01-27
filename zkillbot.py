@@ -49,7 +49,7 @@ def main():
         process_queues();
 
 def check_average(value, group_id):
-    global zkill_value_modifier
+    global zkill_value_modifier, zkill_value_minimum
 
     group_values = group_price[group_id]
     valuable = False
@@ -57,7 +57,8 @@ def check_average(value, group_id):
         valuable = value >= (float(sum(group_values)) / len(group_values) * zkill_value_modifier)
 
     # add this price to our average ticker
-    group_values.append(value)
+    if zkill_value_modifier and value >= zkill_value_minimum:
+        group_values.append(value)
 
     return valuable
 
