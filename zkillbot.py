@@ -1,5 +1,7 @@
 import time
+import json
 import requests
+from collections import defaultdict, deque
 from datetime import datetime
 from config import *
 
@@ -8,9 +10,18 @@ last_message = datetime(2000, 1, 1)
 priority_queue = []
 message_queue = []
 
+### Price Tracking ###
+type_groups = None
+group_price = defaultdict(lambda: deque(maxlen = 100))
+
 def main():
     s = requests.Session();
     s.headers.update({'User-Agent': user_agent, 'Accept': 'text/json'})
+
+    # load our type mapping
+    with open('ship_ids.json', 'r') as input:
+        type_groups = defaultdict(int, json.load(input))
+
     while True:
         # fetch kills from zkillboard
         kill = fetch_zkill(s)
@@ -26,12 +37,29 @@ def main():
                         priority_queue.append(kill['killID'])
                         break;
 
+            # check the price of this kill against the average value
+            if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['shipType']['id_str']]):
+                message_queue.append(kill['killID'])
+            
             # if this is a fancy kill add it to the message queue
-            if kill['zkb']['totalValue'] > zkill_value_threshold:
+            if zkill_value_threshold and kill['zkb']['totalValue'] > zkill_value_threshold:
                 message_queue.append(kill['killID'])
 
         # check if there is anything to post
         process_queues();
+
+def check_average(value, group_id):
+    global zkill_value_modifier
+
+    group_values = group_price[group_id]
+    valuable = False
+    if len(group_values) > 20 and group_id != 0 and zkill_value_modifier:
+        valuable = value >= (float(sum(group_values)) / len(group_values) * zkill_value_modifier)
+
+    # add this price to our average ticker
+    group_values.append(value)
+
+    return valuable
 
 def process_queues():
     global last_message, priority_queue, message_queue
