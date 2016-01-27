@@ -1,3 +1,4 @@
 config.py
 *.pyc
 *sublime-*
+group_avg

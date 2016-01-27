@@ -1,6 +1,7 @@
 import time
-import json
+import pickle
 import requests
+import os.path
 from collections import defaultdict, deque
 from datetime import datetime
 from config import *
@@ -10,17 +11,28 @@ last_message = datetime(2000, 1, 1)
 priority_queue = []
 message_queue = []
 
+def group_value_factory():
+    return deque(maxlen = 100)
+
 ### Price Tracking ###
 type_groups = None
-group_price = defaultdict(lambda: deque(maxlen = 100))
+group_price = defaultdict(group_value_factory)
+
+### Write price data ###
+last_save = datetime(2000, 1, 1)
 
 def main():
     s = requests.Session();
     s.headers.update({'User-Agent': user_agent, 'Accept': 'text/json'})
 
     # load our type mapping
-    with open('ship_ids.json', 'r') as input:
-        type_groups = defaultdict(int, json.load(input))
+    with open('ship_ids', 'r') as input:
+        type_groups = pickle.load(input)
+
+    # load our price history
+    if os.path.isfile('group_avg'):
+        with open('group_avg', 'r') as input:
+            group_price = pickle.load(input)
 
     while True:
         # fetch kills from zkillboard
@@ -47,6 +59,19 @@ def main():
 
         # check if there is anything to post
         process_queues();
+
+        # check if we need to save price data
+        save();
+
+def save():
+    global last_save
+
+    if (datetime.now() - last_save).total_seconds() > 60:
+        with open('group_avg', 'w') as output:
+            pickle.dump(group_price, output)
+
+        # update timestamp
+        last_save = datetime.now()
 
 def check_average(value, group_id):
     global zkill_value_modifier, zkill_value_minimum
