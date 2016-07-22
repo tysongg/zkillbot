@@ -1,6 +1,7 @@
 import time
 import pickle
 import requests
+import sys
 import os.path
 from collections import defaultdict, deque
 from datetime import datetime
@@ -136,18 +137,22 @@ def fetch_zkill(session):
     return None
 
 def print_kill(kill):
-    values = {
-        'killID': kill['killID'],
-        'shipType': kill['killmail']['victim']['shipType']['name'],
-        'value': format_isk(kill['zkb']['totalValue'])
-    }
+    try:
+        values = {
+            'killID': kill['killID'],
+            'shipType': kill['killmail']['victim']['shipType']['name'],
+            'value': format_isk(kill['zkb']['totalValue'])
+        }
 
-    pilot = list();
-    if 'character' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['character']['name']) 
-    if 'corporation' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['corporation']['name']) 
-    if 'alliance' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['alliance']['name']) 
+        pilot = list();
+        if 'character' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['character']['name']) 
+        if 'corporation' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['corporation']['name']) 
+        if 'alliance' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['alliance']['name']) 
 
-    print "{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values)
+        print "{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values)
+    except TypeError:
+        sys.stderr.write(sys.exc_info()[0] + '\n')
+        sys.stderr.write(kill + '\n')
 
 def format_isk(num):
     BILLION = 1000000000
