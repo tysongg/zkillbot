@@ -1,4 +1,5 @@
 import time
+import traceback as tb
 import pickle
 import requests
 import sys
@@ -150,8 +151,8 @@ def print_kill(kill):
         if 'alliance' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['alliance']['name']) 
 
         print "{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values)
-    except TypeError:
-        sys.stderr.write(sys.exc_info()[0] + '\n')
+    except (KeyError, TypeError):
+        sys.stderr.write(tb.format_exc() + '\n')
         sys.stderr.write(kill + '\n')
 
 def format_isk(num):
