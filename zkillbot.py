@@ -153,7 +153,7 @@ def print_kill(kill):
         print "{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values)
     except (KeyError, TypeError):
         sys.stderr.write(tb.format_exc() + '\n')
-        sys.stderr.write(kill + '\n')
+        sys.stderr.write(str(kill) + '\n')
 
 def format_isk(num):
     BILLION = 1000000000
