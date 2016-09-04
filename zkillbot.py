@@ -141,8 +141,8 @@ def print_kill(kill):
     try:
         values = {
             'killID': kill['killID'],
-            'shipType': kill['killmail']['victim']['shipType']['name'],
-            'value': format_isk(kill['zkb']['totalValue'])
+            'shipType': kill['killmail']['victim']['shipType'].get('name', 'Unknown'),
+            'value': format_isk(kill['zkb'].get('totalValue', 0.0),
         }
 
         pilot = list();
