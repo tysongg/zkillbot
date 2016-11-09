@@ -28,17 +28,22 @@ def main():
     s.headers.update({'User-Agent': user_agent, 'Accept': 'text/json'})
 
     # load our type mapping
-    with open('ship_ids', 'r') as input:
+    with open('ship_ids', 'rb') as input:
         type_groups = pickle.load(input)
 
     # load our price history
     if os.path.isfile('group_avg'):
-        with open('group_avg', 'r') as input:
+        with open('group_avg', 'rb') as input:
             group_price = pickle.load(input)
 
     while True:
         # fetch kills from zkillboard
-        kill = fetch_zkill(s)
+        try:
+            kill = fetch_zkill(s)
+        except requests.exceptions.SSLError:
+            print('Unable to establish a secure connection')
+            break
+
         if kill:
             # print kill
             print_kill(kill)
@@ -69,7 +74,7 @@ def save():
     global last_save
 
     if (datetime.now() - last_save).total_seconds() > 60:
-        with open('group_avg', 'w') as output:
+        with open('group_avg', 'wb') as output:
             pickle.dump(group_price, output)
 
         # update timestamp
@@ -125,6 +130,7 @@ def post_message(text):
         requests.post(groupme_url, data=payload)
 
 def fetch_zkill(session):
+
     r = session.get(redisq_url)
 
     # pull json data from the response
@@ -150,7 +156,7 @@ def print_kill(kill):
         if 'corporation' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['corporation']['name']) 
         if 'alliance' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['alliance']['name']) 
 
-        print "{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values)
+        print("{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values))
     except (KeyError, TypeError):
         sys.stderr.write(tb.format_exc() + '\n')
         sys.stderr.write(str(kill) + '\n')

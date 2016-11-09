@@ -3,3 +3,4 @@ config.py
 *sublime-*
 group_avg
 venv/
+.idea/
