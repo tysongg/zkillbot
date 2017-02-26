@@ -67,7 +67,9 @@ def main():
             save();
         except:
             sys.stderr.write(tb.format_exc() + '\n')
-            sys.stderr.write(str(kill) + '\n')
+            if locals().get('kill'):
+                sys.stderr.write('Kill Information')
+                sys.stderr.write(str(kill) + '\n')
 
 def save():
     global last_save
