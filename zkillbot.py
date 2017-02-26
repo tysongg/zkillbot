@@ -38,32 +38,36 @@ def main():
 
     while True:
         # fetch kills from zkillboard
-        kill = fetch_zkill(s)
-        if kill:
-            # print kill
-            print_kill(kill)
-            # if this is a watched kill or loss add it to the priority queue
-            if kill['killmail']['victim']['corporation']['name'].lower() in priority_corps:
-                priority_queue.append(kill['killID'])
-            else:
-                for attacker in kill['killmail']['attackers']:
-                    if 'corporation' in attacker and attacker['corporation']['name'].lower() in priority_corps:
-                        priority_queue.append(kill['killID'])
-                        break;
+        try:
+            kill = fetch_zkill(s)
+            if kill:
+                # print kill
+                print_kill(kill)
+                # if this is a watched kill or loss add it to the priority queue
+                if kill['killmail']['victim']['corporation']['name'].lower() in priority_corps:
+                    priority_queue.append(kill['killID'])
+                else:
+                    for attacker in kill['killmail']['attackers']:
+                        if 'corporation' in attacker and attacker['corporation']['name'].lower() in priority_corps:
+                            priority_queue.append(kill['killID'])
+                            break;
 
-            # check the price of this kill against the average value
-            if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['shipType']['id_str']]):
-                message_queue.append(kill['killID'])
-            
-            # if this is a fancy kill add it to the message queue
-            if zkill_value_threshold and kill['zkb']['totalValue'] > zkill_value_threshold:
-                message_queue.append(kill['killID'])
+                # check the price of this kill against the average value
+                if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['shipType']['id_str']]):
+                    message_queue.append(kill['killID'])
+                
+                # if this is a fancy kill add it to the message queue
+                if zkill_value_threshold and kill['zkb']['totalValue'] > zkill_value_threshold:
+                    message_queue.append(kill['killID'])
 
-        # check if there is anything to post
-        process_queues();
+            # check if there is anything to post
+            process_queues();
 
-        # check if we need to save price data
-        save();
+            # check if we need to save price data
+            save();
+        except:
+            sys.stderr.write(tb.format_exc() + '\n')
+            sys.stderr.write(str(kill) + '\n')
 
 def save():
     global last_save
@@ -138,22 +142,18 @@ def fetch_zkill(session):
     return None
 
 def print_kill(kill):
-    try:
-        values = {
-            'killID': kill['killID'],
-            'shipType': kill['killmail']['victim']['shipType'].get('name', 'Unknown'),
-            'value': format_isk(kill['zkb'].get('totalValue', 0.0)),
-        }
+    values = {
+        'killID': kill['killID'],
+        'shipType': kill['killmail']['victim']['shipType'].get('name', 'Unknown'),
+        'value': format_isk(kill['zkb'].get('totalValue', 0.0)),
+    }
 
-        pilot = list();
-        if 'character' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['character']['name']) 
-        if 'corporation' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['corporation']['name']) 
-        if 'alliance' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['alliance']['name']) 
+    pilot = list();
+    if 'character' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['character']['name']) 
+    if 'corporation' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['corporation']['name']) 
+    if 'alliance' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['alliance']['name']) 
 
-        print "{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values)
-    except (KeyError, TypeError):
-        sys.stderr.write(tb.format_exc() + '\n')
-        sys.stderr.write(str(kill) + '\n')
+    print "{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values)
 
 def format_isk(num):
     BILLION = 1000000000
