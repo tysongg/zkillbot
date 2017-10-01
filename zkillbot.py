@@ -51,11 +51,11 @@ def main():
                 # print kill
                 print_kill(kill)
                 # if this is a watched kill or loss add it to the priority queue
-                if kill['killmail']['victim']['corporation_id'] in priority_corps:
+                if 'corporation_id' in kill['killmail']['victim'] and kill['killmail']['victim']['corporation_id'] in priority_corps:
                     priority_queue.append(kill['killID'])
                 else:
                     for attacker in kill['killmail']['attackers']:
-                        if attacker['corporation_id'] in priority_corps:
+                        if 'corporation_id' in attacker and attacker['corporation_id'] in priority_corps:
                             priority_queue.append(kill['killID'])
                             break;
 
