@@ -41,19 +41,26 @@ def main():
         try:
             kill = fetch_zkill(s)
             if kill:
+
+                # 2017-09-30T23:40:34Z
+                kill_date = datetime.strptime(kill['killmail']['killmail_time'], '%Y-%m-%dT%H:%M:%SZ')
+                if (datetime.utcnow() - kill_date).total_seconds() >= 86400:
+                    # Old kill, probably a recalc.  Skip!
+                    continue
+
                 # print kill
                 print_kill(kill)
                 # if this is a watched kill or loss add it to the priority queue
-                if kill['killmail']['victim']['corporation']['name'].lower() in priority_corps:
+                if kill['killmail']['victim']['corporation_id'] in priority_corps:
                     priority_queue.append(kill['killID'])
                 else:
                     for attacker in kill['killmail']['attackers']:
-                        if 'corporation' in attacker and attacker['corporation']['name'].lower() in priority_corps:
+                        if attacker['corporation_id'] in priority_corps:
                             priority_queue.append(kill['killID'])
                             break;
 
                 # check the price of this kill against the average value
-                if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['shipType']['id_str']]):
+                if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['ship_type_id']]):
                     message_queue.append(kill['killID'])
                 
                 # if this is a fancy kill add it to the message queue
@@ -144,18 +151,12 @@ def fetch_zkill(session):
     return None
 
 def print_kill(kill):
-    values = {
-        'killID': kill['killID'],
-        'shipType': kill['killmail']['victim']['shipType'].get('name', 'Unknown'),
-        'value': format_isk(kill['zkb'].get('totalValue', 0.0)),
-    }
 
-    pilot = list();
-    if 'character' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['character']['name']) 
-    if 'corporation' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['corporation']['name']) 
-    if 'alliance' in kill['killmail']['victim']: pilot.append(kill['killmail']['victim']['alliance']['name']) 
-
-    print "{date} > {killID} | {value} | {shipType} | {pilot}".format(date = datetime.now(), pilot = ' - '.join(pilot).encode('utf-8'), **values)
+    print "{date} > {killID} | {value}".format(
+        date=datetime.now(), 
+        killID=kill['killID'], 
+        value=format_isk(kill['zkb'].get('totalValue', 0.0))
+    )
 
 def format_isk(num):
     BILLION = 1000000000
