@@ -24,7 +24,6 @@ group_price = defaultdict(group_value_factory)
 last_save = datetime(2000, 1, 1)
 
 def main():
-    global type_groups
     s = requests.Session();
     s.headers.update({'User-Agent': user_agent, 'Accept': 'text/json'})
 
@@ -55,7 +54,7 @@ def main():
                 # check to see if we want to add kill to the queues
                 if check_priority(kill):
                     priority_queue.append(kill['killID'])
-                elif check_intersting(kill):
+                elif check_intersting(kill, type_groups):
                     message_queue.append(kill['killID'])
 
             # check if there is anything to post
@@ -108,7 +107,7 @@ def check_priority(kill):
     
     return False
 
-def check_intersting(kill):
+def check_intersting(kill, type_groups):
     global type_groups
     # check the price of this kill against the average value
     if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['ship_type_id']]):
