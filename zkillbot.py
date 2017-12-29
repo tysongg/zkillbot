@@ -108,7 +108,6 @@ def check_priority(kill):
     return False
 
 def check_intersting(kill, type_groups):
-    global type_groups
     # check the price of this kill against the average value
     if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['ship_type_id']]):
         return True
