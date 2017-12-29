@@ -2,6 +2,7 @@ user_agent = 'QS - zKill Monitor'
 
 ### Watchlists ###
 priority_corps = []
+priority_chars = []
 
 zkill_value_threshold = 40000000000
 zkill_value_modifier = 2.5

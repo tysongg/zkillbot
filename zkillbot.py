@@ -50,21 +50,11 @@ def main():
 
                 # print kill
                 print_kill(kill)
-                # if this is a watched kill or loss add it to the priority queue
-                if 'corporation_id' in kill['killmail']['victim'] and kill['killmail']['victim']['corporation_id'] in priority_corps:
-                    priority_queue.append(kill['killID'])
-                else:
-                    for attacker in kill['killmail']['attackers']:
-                        if 'corporation_id' in attacker and attacker['corporation_id'] in priority_corps:
-                            priority_queue.append(kill['killID'])
-                            break;
 
-                # check the price of this kill against the average value
-                if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['ship_type_id']]):
-                    message_queue.append(kill['killID'])
-                
-                # if this is a fancy kill add it to the message queue
-                if zkill_value_threshold and kill['zkb']['totalValue'] > zkill_value_threshold:
+                # check to see if we want to add kill to the queues
+                if check_priority(kill):
+                    priority_queue.append(kill['killID'])
+                elif check_intersting(kill):
                     message_queue.append(kill['killID'])
 
             # check if there is anything to post
@@ -101,6 +91,32 @@ def check_average(value, group_id):
         group_values.append(value)
 
     return valuable
+
+def check_priority(kill):
+    # if this is a watched kill or loss add it to the priority queue
+    if 'corporation_id' in kill['killmail']['victim'] and kill['killmail']['victim']['corporation_id'] in priority_corps:
+        return True
+    elif 'character_id' in kill['killmail']['victim'] and kill['killmail']['victim']['character_id'] in priority_chars:
+        return True
+    else:
+        for attacker in kill['killmail']['attackers']:
+            if 'corporation_id' in attacker and attacker['corporation_id'] in priority_corps:
+                return True
+            if 'character_id' in attacker and attacker['character_id'] in priority_chars:
+                return True
+    
+    return False
+
+def check_intersting(kill):
+    # check the price of this kill against the average value
+    if check_average(kill['zkb']['totalValue'], type_groups[kill['killmail']['victim']['ship_type_id']]):
+        return True
+    
+    # if this is a fancy kill add it to the message queue
+    elif zkill_value_threshold and kill['zkb']['totalValue'] > zkill_value_threshold:
+        return True
+    
+    return False
 
 def process_queues():
     global last_message, priority_queue, message_queue
