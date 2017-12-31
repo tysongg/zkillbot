@@ -93,7 +93,8 @@ def check_average(value, group_id):
     return valuable
 
 def check_priority(kill):
-    # if this is a watched kill or loss add it to the priority queue
+    if kill['zkb']['totalValue'] < zkill_priority_value_minimum:
+        return False
     if 'corporation_id' in kill['killmail']['victim'] and kill['killmail']['victim']['corporation_id'] in priority_corps:
         return True
     elif 'character_id' in kill['killmail']['victim'] and kill['killmail']['victim']['character_id'] in priority_chars:
@@ -123,7 +124,7 @@ def process_queues():
 
     # check for priority queue first
     if len(priority_queue) and (datetime.now() - last_message).total_seconds() > priority_interval:
-        process_queue(priority_queue)
+        process_queue(priority_queue, True)
         priority_queue = []
     # then check our standard queue
     elif len(message_queue) and (datetime.now() - last_message).total_seconds() > message_interval:
@@ -133,20 +134,26 @@ def process_queues():
     if len(message_queue) > 10:
         message_queue = message_queue[:10]
 
-def process_queue(queue):
+def process_queue(queue, priority=False):
     global last_message
     last_message = datetime.now()
     if len(queue) > bulk_post_threshold:
         # build our text string
         text = '\n'.join([zkillboard_url.format(id = killID) for killID in queue])
         # post the message to GroupMe
-        post_message(text)
+        post_message(text, prioirty)
     else:
         for killID in queue:
-            post_message(zkillboard_url.format(id = killID))
+            post_message(zkillboard_url.format(id = killID), priority)
 
-def post_message(text):
-    if bot_id:
+def post_message(text, prioirty=False):
+    bot = None
+    if priority and priority_bot_id:
+        bot = priority_bot_id
+    elif bot_id:
+        bot = bot_id
+
+    if bot:
         payload = {
             'bot_id': bot_id,
             'text': text
